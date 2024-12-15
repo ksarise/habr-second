@@ -16,6 +16,7 @@ function App() {
   const [maxRating, setMaxRating] = useState<number | null>(null);
   const [sortField, setSortField] = useState<"date" | "rating" | null>(null);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  const [searchText, setSearchText] = useState<string>("");
 
   useEffect(() => {
     dispatch(fetchReviewsStart());
@@ -26,8 +27,11 @@ function App() {
     const ratingMatches =
       (minRating !== null ? review.rating >= minRating : true) &&
       (maxRating !== null ? review.rating <= maxRating : true);
+    const textMatches = searchText
+    ? review.text.toLowerCase().includes(searchText.toLowerCase())
+    : true;
 
-    return platformMatches && ratingMatches;
+    return platformMatches && ratingMatches && textMatches;
   });
 
   const sortedReviews = [...filteredReviews].sort((a, b) => {
@@ -71,6 +75,15 @@ function App() {
           placeholder="Max rate"
           value={maxRating || ""}
           onChange={(e) => setMaxRating(e.target.value ? Number(e.target.value) : null)}
+        />
+      </div>
+
+      <div>
+        <input
+          type="text"
+          placeholder="Text search"
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
         />
       </div>
 
