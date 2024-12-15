@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchReviewsStart } from "./store/configStore";
 import { RootState } from "./store";
 import {Review} from "./types";
 import reviews from "./data/data.json";
+import "./App.css";
 
 const platforms = [... new Set(reviews.reviews
   .map((review: Review) => review.platform))]
@@ -45,14 +46,16 @@ function App() {
     return 0;
   });
 
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p>Error: {error}</p>;
+  if (loading) return <p className="reviews__loading">Loading...</p>;
+  if (error) return  <p className="reviews__error">Error: {error}</p>;
 
   return (
-    <div>
-      <h1>Reviews:</h1>
-      <div>
+    <div className="reviews">
+      <h1 className="reviews__header">Reviews:</h1>
+
+      <div className="reviews__filters">
         <select
+          className="reviews__filter"
           value={selectedPlatform || ""}
           onChange={(e) => setSelectedPlatform(e.target.value || null)}
         >
@@ -65,21 +68,21 @@ function App() {
         </select>
 
         <input
+          className="reviews__filter"
           type="number"
           placeholder="Min rate"
           value={minRating || ""}
           onChange={(e) => setMinRating(e.target.value ? Number(e.target.value) : null)}
         />
         <input
+          className="reviews__filter"
           type="number"
           placeholder="Max rate"
           value={maxRating || ""}
           onChange={(e) => setMaxRating(e.target.value ? Number(e.target.value) : null)}
         />
-      </div>
-
-      <div>
         <input
+          className="reviews__filter"
           type="text"
           placeholder="Text search"
           value={searchText}
@@ -87,8 +90,9 @@ function App() {
         />
       </div>
 
-      <div>
+      <div className="reviews__sorting">
         <select
+          className="reviews__sort"
           value={sortField || ""}
           onChange={(e) => setSortField(e.target.value ? (e.target.value as "date" | "rating") : null)}
         >
@@ -96,17 +100,23 @@ function App() {
           <option value="date">By time</option>
           <option value="rating">By rate</option>
         </select>
-
-        <button onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}>
-          Порядок: {sortOrder === "asc" ? "Asc" : "Desc"}
+        <button
+          className="reviews__sort-order"
+          onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+        >
+          {sortOrder === "asc" ? "▲ Asc" : "▼ Desc"}
         </button>
       </div>
 
-      <ul>
+      <ul className="reviews__list">
         {sortedReviews.map((review: Review) => (
-          <li key={review.id}>
-            {review.platform} - {review.rating} - {new Date(review.date).toLocaleString()} -{" "}
-            {review.text}
+          <li key={review.id} className="reviews__item">
+            <strong className="reviews__platform">{review.platform}</strong> -{" "}
+            <span className="reviews__rating">{review.rating}</span> -{" "}
+            <span className="reviews__date">
+              {new Date(review.date).toLocaleString()}
+            </span>
+            <p className="reviews__text">{review.text}</p>
           </li>
         ))}
       </ul>
