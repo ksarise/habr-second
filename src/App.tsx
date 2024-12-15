@@ -1,10 +1,12 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchReviewsStart } from "./store/configStore";
 import { RootState } from "./store";
-import { Review } from "./types";
+import {Review} from "./types";
+import reviews from "./data/data.json";
 
-const platforms = ["Google", "Яндекс", "2ГИС"];
+const platforms = [... new Set(reviews.reviews
+  .map((review: Review) => review.platform))]
 
 function App() {
   const dispatch = useDispatch();
@@ -12,13 +14,12 @@ function App() {
   const [selectedPlatform, setSelectedPlatform] = useState<string | null>(null);
   const [minRating, setMinRating] = useState<number | null>(null);
   const [maxRating, setMaxRating] = useState<number | null>(null);
+  const [sortField, setSortField] = useState<"date" | "rating" | null>(null);
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
   useEffect(() => {
     dispatch(fetchReviewsStart());
   }, [dispatch]);
-
-  if (loading) return <p>Loading</p>;
-  if (error) return <p>Error: {error}</p>;
 
   const filteredReviews = reviews.filter((review: Review) => {
     const platformMatches = selectedPlatform ? review.platform === selectedPlatform : true;
@@ -29,9 +30,23 @@ function App() {
     return platformMatches && ratingMatches;
   });
 
-   return (
+  const sortedReviews = [...filteredReviews].sort((a, b) => {
+    if (!sortField) return 0;
+
+    const fieldA = a[sortField];
+    const fieldB = b[sortField];
+
+    if (fieldA < fieldB) return sortOrder === "asc" ? -1 : 1;
+    if (fieldA > fieldB) return sortOrder === "asc" ? 1 : -1;
+    return 0;
+  });
+
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>Error: {error}</p>;
+
+  return (
     <div>
-      <h1>Отзывы</h1>
+      <h1>Reviews:</h1>
       <div>
         <select
           value={selectedPlatform || ""}
@@ -44,29 +59,46 @@ function App() {
             </option>
           ))}
         </select>
+
         <input
           type="number"
-          placeholder="Minimum rating"
+          placeholder="Min rate"
           value={minRating || ""}
           onChange={(e) => setMinRating(e.target.value ? Number(e.target.value) : null)}
         />
         <input
           type="number"
-          placeholder="Maximum rating"
+          placeholder="Max rate"
           value={maxRating || ""}
           onChange={(e) => setMaxRating(e.target.value ? Number(e.target.value) : null)}
         />
       </div>
+
+      <div>
+        <select
+          value={sortField || ""}
+          onChange={(e) => setSortField(e.target.value ? (e.target.value as "date" | "rating") : null)}
+        >
+          <option value="">No sort</option>
+          <option value="date">By time</option>
+          <option value="rating">By rate</option>
+        </select>
+
+        <button onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}>
+          Порядок: {sortOrder === "asc" ? "Asc" : "Desc"}
+        </button>
+      </div>
+
       <ul>
-        {filteredReviews.map((review: Review) => (
+        {sortedReviews.map((review: Review) => (
           <li key={review.id}>
-            {review.platform} - {review.rating} - {review.text}
+            {review.platform} - {review.rating} - {new Date(review.date).toLocaleString()} -{" "}
+            {review.text}
           </li>
         ))}
       </ul>
     </div>
   );
 }
-
 
 export default App;

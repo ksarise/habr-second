@@ -3,6 +3,7 @@ export interface Review {
   platform: string;
   rating: number;
   text: string;
+  date: string;
 }
 
 export interface ReviewsState {
